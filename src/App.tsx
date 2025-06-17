@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import StationList from './components/StationList';
 import WeatherDataDisplay from './components/WeatherDataDisplay';
-import { WeatherStation, WeatherApiResponse, WeatherData } from './types';
+import { WeatherStation, WeatherData } from './types';
 import { Box, Typography } from '@mui/material';
 
 const App: React.FC = () => {
@@ -15,12 +15,24 @@ const App: React.FC = () => {
 
   // Fetch all stations
   useEffect(() => {
-    fetch('http://localhost:8000/api/get-stations')
+    fetch('https://6ddrtwwz-8000.uks1.devtunnels.ms/api/get-stations')
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch stations');
         return res.json();
       })
-      .then(setStations)
+      .then((data) => {
+        // Transform the array of arrays into WeatherStation objects
+        const transformedStations = data.map(
+          ([id, name, latitude, longitude]: [string, string, number, number]) => ({
+            id,
+            name,
+            latitude,
+            longitude,
+            lastUpdate: null,
+          })
+        );
+        setStations(transformedStations);
+      })
       .catch((err) => {
         console.error(err);
         setError('Error loading stations');
@@ -29,23 +41,81 @@ const App: React.FC = () => {
 
   // Fetch weather for selected station
   useEffect(() => {
-    if (!selectedStationId) return;
+    if (!selectedStationId) {
+      console.log('No station selected');
+      return;
+    }
 
+    const selectedStation = stations.find(s => s.id === selectedStationId);
+    if (!selectedStation) {
+      console.log('Selected station not found:', selectedStationId);
+      return;
+    }
+
+    console.log('Fetching weather for:', selectedStation);
     setLoading(true);
     setError(null);
+    setWeatherData(null); // Clear previous data
 
-    fetch(`http://localhost:8000/api/get-weather/${selectedStationId}`)
+    // Create the station parameter format expected by backend
+    const stationParam = `${selectedStation.id} | ${selectedStation.name}`;
+    const requestUrl = `https://6ddrtwwz-8000.uks1.devtunnels.ms/api/data?station=${encodeURIComponent(stationParam)}`;
+    
+    console.log('Making request to:', requestUrl);
+    console.log('Station param:', stationParam);
+    
+    fetch(requestUrl)
       .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch weather data');
+        console.log('Response status:', res.status);
+        
+        if (res.status === 500) {
+          // Handle 500 errors specifically (likely no data available)
+          throw new Error('No weather data available for this station');
+        }
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
         return res.json();
       })
-      .then(setWeatherData)
-      .catch((err) => {
-        console.error(err);
-        setError('Error loading weather data');
+      .then((apiResponse) => {
+        console.log('API Response:', apiResponse);
+        
+        // Transform the API response to WeatherData format
+        if (apiResponse.status === 'success' && apiResponse.data?.observations) {
+          const obs = apiResponse.data.observations;
+          console.log('Observations:', obs);
+          
+          const weatherData: WeatherData = {
+            timestamp: obs.last_report,
+            temperature: obs.values.te,
+            humidity: obs.values.rh * 100, // Convert from decimal to percentage
+            rainfall: obs.values.pr,
+            windSpeed: obs.values.ws,
+            windDirection: obs.values.wd,
+            // Additional weather data
+            airPressure: obs.values.ap,
+            solarRadiation: obs.values.ra,
+            windGust: obs.values.wg,
+          };
+          
+          console.log('Transformed weather data:', weatherData);
+          setWeatherData(weatherData);
+        } else {
+          console.error('Invalid API response structure:', apiResponse);
+          throw new Error('Invalid weather data format');
+        }
       })
-      .finally(() => setLoading(false));
-  }, [selectedStationId]);
+      .catch((err) => {
+        console.error('Weather fetch error:', err);
+        setError(`${err.message}`);
+      })
+      .finally(() => {
+        console.log('Weather fetch completed');
+        setLoading(false);
+      });
+  }, [selectedStationId, stations]);
 
   return (
   

@@ -1,35 +1,38 @@
 // src/components/StationList.tsx
 
 import React from 'react';
-import { List, ListItemButton, ListItemText, Paper } from '@mui/material';
+import { List, ListItemButton, ListItemText, Paper, Typography, Box } from '@mui/material';
 import { WeatherStation } from '../../types';
 
 interface Props {
   stations: WeatherStation[];
-  // stations: any;
   selectedStationId: string | undefined;
   onStationSelect: (id: string) => void;
 }
 
 const StationList: React.FC<Props> = ({ stations, selectedStationId, onStationSelect }) => {
-  console.log('menu', stations[0])
+  console.log('Stations:', stations);
   return (
     <Paper sx={{ width: 250, maxHeight: 500, overflowY: 'auto' }}>
+      <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <Typography variant="h6">Weather Stations</Typography>
+        <Typography variant="caption" color="textSecondary">
+          {stations.length} stations available
+        </Typography>
+      </Box>
       <List>
-        {/* {
-          stations.map((station,i)=><div key={i} selected={station.id === selectedStationId}
-          onClick={() => onStationSelect(station.id)}>
-            
-            {station[1]}
-          </div>)
-        } */}
-        {stations.map((station:any) => (
+        {stations.map((station) => (
           <ListItemButton
-           key ={station.id}
+            key={station.id}
             selected={station.id === selectedStationId}
             onClick={() => onStationSelect(station.id)}
           >
-            <ListItemText primary={station[1]} />
+            <ListItemText 
+              primary={station.name} 
+              secondary={station.id}
+              primaryTypographyProps={{ fontSize: '0.9rem' }}
+              secondaryTypographyProps={{ fontSize: '0.75rem' }}
+            />
           </ListItemButton>
         ))}
       </List>

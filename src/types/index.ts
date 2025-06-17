@@ -52,4 +52,7 @@ export interface WeatherData {
   rainfall?: number;
   windSpeed?: number;
   windDirection?: number;
+  airPressure?: number;
+  solarRadiation?: number;
+  windGust?: number;
 }
