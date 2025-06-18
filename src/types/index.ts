@@ -55,4 +55,17 @@ export interface WeatherData {
   airPressure?: number;
   solarRadiation?: number;
   windGust?: number;
+  // Additional station details from API
+  altitude?: number;
+  installation_height?: number;
+  timezone?: string;
+  status?: number;
+  code?: string;
+  station_local_reported_time?: string;
+  utc_reported_time?: string;
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+  // Forecast data
+  forecasts?: [string, number][];
 }

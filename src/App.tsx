@@ -1,11 +1,10 @@
 // src/App.tsx
 
 import React, { useEffect, useState } from 'react';
-import StationList from './components/StationList';
-import WeatherDataDisplay from './components/WeatherDataDisplay';
 import { WeatherStation, WeatherData } from './types';
 import { getStations, getWeatherData } from './services/api';
-import { Box, Typography } from '@mui/material';
+import { StationsPage, StationDataPage } from './pages';
+import { Box } from '@mui/material';
 
 const App: React.FC = () => {
   const [stations, setStations] = useState<WeatherStation[]>([]);
@@ -13,6 +12,22 @@ const App: React.FC = () => {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Page navigation state
+  const [currentPage, setCurrentPage] = useState<'stations' | 'station-data'>('stations');
+
+  // Handle station selection and navigation to station data page
+  const handleStationSelect = (stationId: string) => {
+    setSelectedStationId(stationId);
+    setCurrentPage('station-data');
+  };
+
+  // Handle going back to stations page
+  const handleBackToStations = () => {
+    setCurrentPage('stations');
+    setSelectedStationId(undefined);
+    setWeatherData(null);
+  };
 
   // Fetch all stations
   useEffect(() => {
@@ -68,6 +83,16 @@ const App: React.FC = () => {
             airPressure: obs.values.ap,
             solarRadiation: obs.values.ra,
             windGust: obs.values.wg,
+            // Station details
+            altitude: obs.altitude,
+            installation_height: obs.installation_height,
+            timezone: obs.timezone,
+            status: obs.status,
+            code: obs.code,
+            station_local_reported_time: obs.station_local_reported_time,
+            utc_reported_time: obs.utc_reported_time,
+            // Forecast data
+            forecasts: apiResponse.data?.forecasts,
           };
           
           console.log('Transformed weather data:', weatherData);
@@ -93,22 +118,23 @@ const App: React.FC = () => {
   }, [selectedStationId, stations]);
 
   return (
-  
-    <Box sx={{ display: 'flex', gap: 4, padding: 4 }}>
-      <StationList
-        stations={stations}
-        selectedStationId={selectedStationId}
-        onStationSelect={setSelectedStationId}
-      />
-      <Box sx={{ flex: 1 }}>
-        <Typography variant="h4" gutterBottom>Weather Station Dashboard</Typography>
-        <WeatherDataDisplay
+    <Box sx={{ padding: 4 }}>
+      {currentPage === 'stations' ? (
+        <StationsPage
+          stations={stations}
+          loading={loading}
+          error={error}
+          onStationSelect={handleStationSelect}
+        />
+      ) : (
+        <StationDataPage
           station={stations.find(s => s.id === selectedStationId)}
           weatherData={weatherData}
           loading={loading}
           error={error}
+          onBackToStations={handleBackToStations}
         />
-      </Box>
+      )}
     </Box>
   );
 };
