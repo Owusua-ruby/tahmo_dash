@@ -1,242 +1,209 @@
 import React from 'react';
 import { WeatherStation, WeatherData } from '../types';
-import WeatherDataDisplay from '../components/WeatherDataDisplay';
-import Map from '../components/Map';
+import * as FaIcons from 'react-icons/fa';
+import { Line } from 'react-chartjs-2';
+import StationLocationMap from '../components/StationLocationMap';
 import {
-  Box,
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  Divider,
-  Container,
-  Grid,
-  Paper,
-  IconButton,
-  Avatar,
-  Stack,
-  useTheme,
-  alpha,
-} from '@mui/material';
-import { 
-  ArrowBack, 
-  LocationOn, 
-  Schedule, 
-  ThermostatAuto,
-  SignalCellularAlt,
-  Height,
-  Public,
-  CheckCircle,
-  Cancel,
-  Refresh
-} from '@mui/icons-material';
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 interface StationDataPageProps {
-    station: WeatherStation | undefined;
-    weatherData: WeatherData | null;
-    loading: boolean;
-    error: string | null;
-    onBackToStations: () => void;
+  station: WeatherStation | undefined;
+  weatherData: WeatherData | null;
+  loading: boolean;
+  error: string | null;
+  onBackToStations: () => void;
 }
 
 const StationDataPage: React.FC<StationDataPageProps> = ({
-    station,
-    weatherData,
-    loading,
-    error,
-    onBackToStations,
+  station,
+  weatherData,
+  loading,
+  error,
+  onBackToStations,
 }) => {
-    if (!station) {
-        return (
-            <Box>
-                <Button
-                    variant="outlined"
-                    startIcon={<ArrowBack />}
-                    onClick={onBackToStations}
-                    sx={{ mb: 2 }}
-                >
-                    Back to Stations
-                </Button>
-                <Typography variant="h6">No station selected</Typography>
-            </Box>
-        );
-    }
-
+  if (!station) {
     return (
-        <Box>
-            {/* Header with Back Button */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Button
-                    variant="outlined"
-                    startIcon={<ArrowBack />}
-                    onClick={onBackToStations}
-                >
-                    Back to Stations
-                </Button>
-                <Box>
-                    <Typography variant="h4">
-                        {station.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        Station ID: {station.id}
-                    </Typography>
-                </Box>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {/* Station Information and Time Information Row */}
-                <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                    {/* Station Information Card */}
-                    <Box sx={{ flex: 1, minWidth: 300 }}>
-                        <Card>
-                            <CardContent>
-                                <Typography variant="h6" gutterBottom>
-                                    <LocationOn sx={{ mr: 1, verticalAlign: 'middle' }} />
-                                    Station Information
-                                </Typography>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                        <Typography variant="body2" color="text.secondary">Location:</Typography>
-                                        <Typography variant="body2">
-                                            {station.latitude?.toFixed(6)}, {station.longitude?.toFixed(6)}
-                                        </Typography>
-                                    </Box>
-                                    {weatherData?.altitude && (
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography variant="body2" color="text.secondary">Altitude:</Typography>
-                                            <Typography variant="body2">{weatherData.altitude}m</Typography>
-                                        </Box>
-                                    )}
-                                    {weatherData?.installation_height && (
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography variant="body2" color="text.secondary">Installation Height:</Typography>
-                                            <Typography variant="body2">{weatherData.installation_height}m</Typography>
-                                        </Box>
-                                    )}
-                                    {weatherData?.timezone && (
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography variant="body2" color="text.secondary">Timezone:</Typography>
-                                            <Typography variant="body2">{weatherData.timezone}</Typography>
-                                        </Box>
-                                    )}
-                                    {weatherData?.status !== undefined && (
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography variant="body2" color="text.secondary">Status:</Typography>
-                                            <Chip
-                                                label={weatherData.status === 1 ? "Active" : "Inactive"}
-                                                color={weatherData.status === 1 ? "success" : "error"}
-                                                size="small"
-                                            />
-                                        </Box>
-                                    )}
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Box>
-
-                    {/* Time Information Card */}
-                    <Box sx={{ flex: 1, minWidth: 300 }}>
-                        <Card>
-                            <CardContent>
-                                <Typography variant="h6" gutterBottom>
-                                    <Schedule sx={{ mr: 1, verticalAlign: 'middle' }} />
-                                    Last Update
-                                </Typography>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                    {weatherData?.timestamp && (
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography variant="body2" color="text.secondary">UTC Time:</Typography>
-                                            <Typography variant="body2">
-                                                {new Date(weatherData.timestamp).toLocaleString()}
-                                            </Typography>
-                                        </Box>
-                                    )}
-                                    {weatherData?.station_local_reported_time && (
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography variant="body2" color="text.secondary">Local Time:</Typography>
-                                            <Typography variant="body2">{weatherData.station_local_reported_time}</Typography>
-                                        </Box>
-                                    )}
-                                    {weatherData?.utc_reported_time && (
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                            <Typography variant="body2" color="text.secondary">UTC Reported:</Typography>
-                                            <Typography variant="body2">{weatherData.utc_reported_time}</Typography>
-                                        </Box>
-                                    )}
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Box>
-                </Box>
-
-                {/* Map */}
-                <Box>
-                    <Card>
-                        <CardContent>
-                            <Typography variant="h6" gutterBottom>
-                                Station Location
-                            </Typography>
-                            <Box sx={{ height: 400 }}>
-                                <Map
-                                    stations={[station]}
-                                    selectedStation={station}
-                                    onSelectStation={() => { }}
-                                />
-                            </Box>
-                        </CardContent>
-                    </Card>
-                </Box>
-
-                {/* Weather Data */}
-                <Box>
-                    <Typography variant="h6" gutterBottom>
-                        <ThermostatAuto sx={{ mr: 1, verticalAlign: 'middle' }} />
-                        Current Weather Conditions
-                    </Typography>
-                    <WeatherDataDisplay
-                        station={station}
-                        weatherData={weatherData}
-                        loading={loading}
-                        error={error}
-                    />
-                </Box>
-
-                {/* Forecasts */}
-                {weatherData?.forecasts && weatherData.forecasts.length > 0 && (
-                    <Box>
-                        <Card>
-                            <CardContent>
-                                <Typography variant="h6" gutterBottom>
-                                    7-Day Rainfall Forecast
-                                </Typography>
-                                <Divider sx={{ mb: 2 }} />
-                                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-                                    {weatherData.forecasts.map(([date, rainfall]) => (
-                                        <Box key={date} sx={{ minWidth: 120, flex: '1 1 auto', maxWidth: 150 }}>
-                                            <Card variant="outlined">
-                                                <CardContent sx={{ textAlign: 'center', py: 1.5 }}>
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        {new Date(date).toLocaleDateString('en-US', {
-                                                            month: 'short',
-                                                            day: 'numeric'
-                                                        })}
-                                                    </Typography>
-                                                    <Typography variant="h6" color="primary">
-                                                        {rainfall}mm
-                                                    </Typography>
-                                                </CardContent>
-                                            </Card>
-                                        </Box>
-                                    ))}
-                                </Box>
-                            </CardContent>
-                        </Card>
-                    </Box>
-                )}
-            </Box>
-        </Box>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <button
+          className="mb-4 px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-semibold"
+          onClick={onBackToStations}
+        >
+          ← Back to Stations
+        </button>
+        <div className="text-lg text-gray-500">No station selected</div>
+      </div>
     );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-full max-w-2xl animate-pulse">
+          <div className="h-10 bg-gray-200 rounded mb-6" />
+          <div className="h-96 bg-gray-200 rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+        <button
+          className="mb-4 px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-semibold"
+          onClick={onBackToStations}
+        >
+          ← Back to Stations
+        </button>
+        <div className="text-lg text-red-500 font-semibold">{error}</div>
+      </div>
+    );
+  }
+
+  // Weather summary items
+  const infoItems = [
+    {
+      label: 'Temperature',
+      value: weatherData?.temperature !== undefined ? `${weatherData.temperature}°C` : 'N/A',
+      icon: <FaIcons.FaThermometerHalf className="text-red-500" />,
+    },
+    {
+      label: 'Humidity',
+      value: weatherData?.humidity !== undefined ? `${weatherData.humidity}%` : 'N/A',
+      icon: '💧',
+    },
+    {
+      label: 'Rainfall',
+      value: weatherData?.rainfall !== undefined ? `${weatherData.rainfall} mm` : 'N/A',
+      icon: '🌧️',
+    },
+    {
+      label: 'Wind Speed',
+      value: weatherData?.windSpeed !== undefined ? `${weatherData.windSpeed} m/s` : 'N/A',
+      icon: '💨',
+    },
+    {
+      label: 'Air Pressure',
+      value: weatherData?.airPressure !== undefined ? `${weatherData.airPressure} hPa` : 'N/A',
+      icon: '🧭',
+    },
+    {
+      label: 'Solar Radiation',
+      value: weatherData?.solarRadiation !== undefined ? `${weatherData.solarRadiation} W/m²` : 'N/A',
+      icon: '☀️',
+    },
+    {
+      label: 'Wind Gust',
+      value: weatherData?.windGust !== undefined ? `${weatherData.windGust} m/s` : 'N/A',
+      icon: '🌬️',
+    },
+  ];
+
+  return (
+    <div className="min-h-screen w-full bg-gray-50 flex flex-col">
+      <div className="w-full max-w-5xl mx-auto py-8">
+        <button
+          className="mb-6 px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 font-semibold"
+          onClick={onBackToStations}
+        >
+          ← Back to Stations
+        </button>
+        <div className="flex flex-col md:flex-row gap-6 mb-8">
+          <div className="flex-1 bg-white rounded-lg shadow-md p-6 flex flex-col gap-2">
+            <div className="flex items-center gap-2 mb-2">
+              <FaIcons.FaMapMarkerAlt className="text-blue-500" />
+              <span className="font-bold text-lg text-gray-900">{station.name}</span>
+              <span className="ml-2 text-xs text-gray-400">({station.id})</span>
+            </div>
+            <div className="text-gray-500 text-sm mb-1">
+              {station.latitude?.toFixed(4)}, {station.longitude?.toFixed(4)}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <FaIcons.FaClock />
+              <span>Last Update: {weatherData?.timestamp ? new Date(weatherData.timestamp).toLocaleString() : 'N/A'}</span>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <FaIcons.FaSignal className={weatherData?.status === 1 ? 'text-green-500' : 'text-gray-400'} />
+              <span>Status: {weatherData?.status === 1 ? 'Online' : 'Offline'}</span>
+            </div>
+          </div>
+          <div className="flex-1 bg-white rounded-lg shadow-md p-6 flex flex-col gap-2">
+            <div className="font-bold text-gray-900 mb-2">Weather Details</div>
+            <div className="grid grid-cols-2 gap-3">
+              {infoItems.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-2 text-gray-700">
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="text-xs text-gray-500">{item.label}:</span>
+                  <span className="font-semibold text-sm">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Station Location Map */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-lg font-bold mb-4 flex items-center">
+            <FaIcons.FaMapMarkerAlt className="mr-2 text-blue-500" />
+            Station Location
+          </h2>
+          <div className="h-96 rounded-lg overflow-hidden border">
+            <StationLocationMap station={station} />
+          </div>
+        </div>
+
+        {/* 7-Day Rainfall Forecast Chart */}
+        {weatherData?.forecasts && weatherData.forecasts.length > 0 && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 className="text-lg font-bold mb-4 flex items-center">
+              <FaIcons.FaDatabase className="mr-2 text-blue-500" />
+              7-Day Rainfall Forecast
+            </h2>
+            <Line
+              data={{
+                labels: weatherData.forecasts.map(([date]: [string, number]) => new Date(date).toLocaleDateString()),
+                datasets: [
+                  {
+                    label: 'Rainfall (mm)',
+                    data: weatherData.forecasts.map(([, rainfall]: [string, number]) => rainfall),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#3b82f6',
+                  },
+                ],
+              }}
+              options={{
+                responsive: true,
+                plugins: {
+                  legend: { display: false },
+                  title: { display: false },
+                  tooltip: { mode: 'index' as const, intersect: false },
+                },
+                scales: {
+                  x: { grid: { display: false } },
+                  y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                },
+              }}
+              className="w-full h-72"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default StationDataPage;

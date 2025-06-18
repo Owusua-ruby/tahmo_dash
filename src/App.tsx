@@ -4,7 +4,59 @@ import React, { useEffect, useState } from 'react';
 import { WeatherStation, WeatherData } from './types';
 import { getStations, getWeatherData } from './services/api';
 import { StationsPage, StationDataPage } from './pages';
-import { Box } from '@mui/material';
+import { Box, CssBaseline, createTheme, ThemeProvider } from '@mui/material';
+
+// Create a modern theme
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+      light: '#42a5f5',
+      dark: '#1565c0',
+    },
+    secondary: {
+      main: '#dc004e',
+      light: '#ff5983',
+      dark: '#9a0036',
+    },
+    background: {
+      default: '#f8fafc',
+      paper: '#ffffff',
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h3: {
+      fontWeight: 700,
+    },
+    h4: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 600,
+    },
+  },
+  shape: {
+    borderRadius: 12,
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+      },
+    },
+  },
+});
 
 const App: React.FC = () => {
   const [stations, setStations] = useState<WeatherStation[]>([]);
@@ -118,24 +170,30 @@ const App: React.FC = () => {
   }, [selectedStationId, stations]);
 
   return (
-    <Box sx={{ padding: 4 }}>
-      {currentPage === 'stations' ? (
-        <StationsPage
-          stations={stations}
-          loading={loading}
-          error={error}
-          onStationSelect={handleStationSelect}
-        />
-      ) : (
-        <StationDataPage
-          station={stations.find(s => s.id === selectedStationId)}
-          weatherData={weatherData}
-          loading={loading}
-          error={error}
-          onBackToStations={handleBackToStations}
-        />
-      )}
-    </Box>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ 
+        minHeight: '100vh',
+        backgroundColor: 'background.default'
+      }}>
+        {currentPage === 'stations' ? (
+          <StationsPage
+            stations={stations}
+            loading={loading}
+            error={error}
+            onStationSelect={handleStationSelect}
+          />
+        ) : (
+          <StationDataPage
+            station={stations.find(s => s.id === selectedStationId)}
+            weatherData={weatherData}
+            loading={loading}
+            error={error}
+            onBackToStations={handleBackToStations}
+          />
+        )}
+      </Box>
+    </ThemeProvider>
   );
 };
 
