@@ -3,7 +3,7 @@ import { WeatherStation, WeatherApiResponse } from '../types';
 
 // Create a reusable Axios instance
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'https://6ddrtwwz-8000.uks1.devtunnels.ms/api',
+  baseURL: process.env.REACT_APP_API_URL || 'http://0.0.0.0:8000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -36,33 +36,3 @@ export const getWeatherData = async (stationId: string, stationName: string): Pr
   console.log('Weather data response:', response.data);
   return response.data;
 };
-
-
-
-
-
-
-
-
-
-
-
-// import axios from 'axios';
-// import { WeatherStation, WeatherData } from '../types';
-
-// const api = axios.create({
-//   baseURL: process.env.REACT_APP_API_URL || 'https://6ddrtwwz-8000.uks1.devtunnels.ms/',
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-// });
-
-// export const getStations = async (): Promise<WeatherStation[]> => {
-//   const response = await api.get('/stations');
-//   return response.data;
-// };
-
-// export const getWeatherData = async (stationId: string): Promise<WeatherData> => {
-//   const response = await api.get(`/stations/${stationId}/weather`);
-//   return response.data;
-// };
